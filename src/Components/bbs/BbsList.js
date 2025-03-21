@@ -20,11 +20,13 @@ function BbsList() {
   const [totalCnt, setTotalCnt] = useState(0);
 
   // 게시글 전체 조회
+  const API_BASE_URL = process.env.REACT_APP_API_URL; // 환경 변수 적용
+
   const getBbsList = async (page) => {
     try {
-		const response = await axios.get("http://localhost:8989/board/list", {
-			params: {"page": page - 1},
-		  });
+      const response = await axios.get(`${API_BASE_URL}/board/list`, {
+        params: { page: page - 1 },
+      });
 
       console.log("[BbsList.js] useEffect() success :D");
       console.log(response.data);
@@ -42,7 +44,7 @@ function BbsList() {
   // 게시글 검색
   const search = async () => {
     try {
-      const response = await axios.get("http://localhost:8989/board/search", {
+      const response = await axios.get(`${API_BASE_URL}/board/search`, {
         params: {
           page: page - 1,
           title: choiceVal === "title" ? searchVal : "",
@@ -68,10 +70,14 @@ function BbsList() {
   }, []);
 
   // 검색 조건 저장
-  const changeChoice = (event) => { setChoiceVal(event.target.value);};
-  const changeSearch = (event) => { setSearchVal(event.target.value);};
+  const changeChoice = (event) => {
+    setChoiceVal(event.target.value);
+  };
+  const changeSearch = (event) => {
+    setSearchVal(event.target.value);
+  };
 
-  // 페이징 보여주기 
+  // 페이징 보여주기
   const changePage = (page) => {
     setPage(page);
     getBbsList(page);
@@ -168,7 +174,7 @@ function TableRow(props) {
         </Link>
       </td>
       <td>{bbs.writerName}</td>
-      <td style={{ textAlign: 'center' }}>{bbs.viewCount}</td>
+      <td style={{ textAlign: "center" }}>{bbs.viewCount}</td>
     </tr>
   );
 }
@@ -179,7 +185,7 @@ function TableRow(props) {
 
 // 	return (
 // 			<tr>
-				
+
 // 					<th>{props.cnt}</th>
 // 					{
 // 						(bbs.del == 0) ?
@@ -202,12 +208,11 @@ function TableRow(props) {
 
 // 								<span className="del-span">⚠️ 이 글은 작성자에 의해 삭제됐습니다.</span>
 // 							</td>
-// 						</>	
+// 						</>
 // 					}
-					
-				
+
 // 			</tr>
-		
+
 // 	);
 // }
 

@@ -13,13 +13,15 @@ import FileDisplay from "../file/FileDisplay";
 function BbsDetail() {
   const { headers, setHeaders } = useContext(HttpHeadersContext);
   const { auth, setAuth } = useContext(AuthContext);
-  const [ bbs, setBbs] = useState({});
+  const [bbs, setBbs] = useState({});
   const { boardId } = useParams(); // 파라미터 가져오기
   const navigate = useNavigate();
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+
   const getBbsDetail = async () => {
     try {
-      const response = await axios.get(`http://localhost:8989/board/${boardId}`);
+      const response = await axios.get(`${API_BASE_URL}/board/${boardId}`);
 
       console.log("[BbsDetail.js] getBbsDetail() success :D");
       console.log(response.data);
@@ -33,7 +35,10 @@ function BbsDetail() {
 
   const deleteBbs = async () => {
     try {
-      const response = await axios.delete(`http://localhost:8989/board/${boardId}/delete`, {headers: headers});
+      const response = await axios.delete(
+        `${API_BASE_URL}/board/${boardId}/delete`,
+        { headers: headers }
+      );
 
       console.log("[BbsDetail.js] deleteBbs() success :D");
       console.log(response.data);
@@ -49,10 +54,10 @@ function BbsDetail() {
   };
 
   useEffect(() => {
-	// 컴포넌트가 렌더링될 때마다 localStorage의 토큰 값으로 headers를 업데이트
-	setHeaders({
-		"Authorization": `Bearer ${localStorage.getItem("bbs_access_token")}`
-	});
+    // 컴포넌트가 렌더링될 때마다 localStorage의 토큰 값으로 headers를 업데이트
+    setHeaders({
+      Authorization: `Bearer ${localStorage.getItem("bbs_access_token")}`,
+    });
     getBbsDetail();
   }, []);
 
@@ -61,7 +66,7 @@ function BbsDetail() {
     writerName: bbs.writerName,
     title: bbs.title,
     content: bbs.content,
-	files: bbs.files
+    files: bbs.files,
   };
 
   const parentBbs = {
@@ -69,87 +74,94 @@ function BbsDetail() {
     title: bbs.title,
   };
 
-	return (
-		<div className="bbs-detail-container">
-			<div>
+  return (
+    <div className="bbs-detail-container">
+      <div>
+        <div className="my-3 d-flex justify-content-end">
+          <Link className="btn btn-outline-secondary" to="/bbslist">
+            <i className="fas fa-list"></i> 글목록
+          </Link>{" "}
+          &nbsp;
+          <Link
+            className="btn btn-outline-secondary"
+            to={{ pathname: `/bbsanswer/${bbs.boardId}` }}
+            state={{ parentBbs: parentBbs }}
+          >
+            <i className="fas fa-pen"></i> 답글쓰기
+          </Link>{" "}
+          &nbsp;
+          {
+            /* 자신이 작성한 게시글인 경우에만 수정, 삭제 가능 */
+            localStorage.getItem("id") == bbs.writerName ? (
+              <>
+                <Link
+                  className="btn btn-outline-secondary"
+                  to="/bbsupdate"
+                  state={{ bbs: updateBbs }}
+                >
+                  <i className="fas fa-edit"></i> 수정
+                </Link>{" "}
+                &nbsp;
+                <button className="btn btn-outline-danger" onClick={deleteBbs}>
+                  <i className="fas fa-trash-alt"></i> 삭제
+                </button>
+              </>
+            ) : null
+          }
+        </div>
 
-				<div className="my-3 d-flex justify-content-end">
-					<Link className="btn btn-outline-secondary" to="/bbslist"><i className="fas fa-list">
-						</i> 글목록</Link> &nbsp;
+        <table className="table table-striped">
+          <tbody>
+            <tr>
+              <th className="col-3">작성자</th>
+              <td>
+                <span>{bbs.writerName}</span>
+              </td>
+            </tr>
 
-					<Link className="btn btn-outline-secondary" to={{pathname: `/bbsanswer/${bbs.boardId}` }} state={{ parentBbs: parentBbs }}>
-						<i className="fas fa-pen"></i> 답글쓰기</Link> &nbsp;
+            <tr>
+              <th>제목</th>
+              <td>
+                <span>{bbs.title}</span>
+              </td>
+            </tr>
 
-				{
-					/* 자신이 작성한 게시글인 경우에만 수정, 삭제 가능 */
-					(localStorage.getItem("id") == bbs.writerName) ?
-						<>
-							<Link className="btn btn-outline-secondary"  to="/bbsupdate" state={{ bbs: updateBbs }}><i className="fas fa-edit"></i> 수정</Link> &nbsp;
-							<button className="btn btn-outline-danger"  onClick={deleteBbs}><i className="fas fa-trash-alt"></i> 삭제</button>
-						</>
-					:
-					null
-				}
+            <tr>
+              <th>작성일</th>
+              <td>
+                <span>{bbs.createdDate}</span>
+              </td>
+            </tr>
 
-				</div>
+            <tr>
+              <th>조회수</th>
+              <td>
+                <span>{bbs.viewCount}</span>
+              </td>
+            </tr>
 
-				<table className="table table-striped">
-				<tbody>
-				<tr>
-					<th className="col-3">작성자</th>
-					<td>
-					<span>{bbs.writerName}</span>
-					</td>
-				</tr>
+            <tr>
+              <th>내용</th>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
 
-				<tr>
-					<th>제목</th>
-					<td>
-					<span>{bbs.title}</span>
-					</td>
-				</tr>
+        <div className="content-box">{bbs.content}</div>
+        <div>
+          <FileDisplay files={bbs.files} boardId={boardId} />
+        </div>
 
-				<tr>
-					<th>작성일</th>
-					<td>
-					<span>{bbs.createdDate}</span>
-					</td>
-				</tr>
+        {/* 댓글 리스트 컴포넌트 */}
+        <CommentList boardId={boardId} />
 
-				<tr>
-					<th>조회수</th>
-					<td>
-					<span>{bbs.viewCount}</span>
-					</td>
-				</tr>
-
-				<tr>
-					<th>내용</th>
-					<td></td>
-				</tr>
-				</tbody>
-				</table>
-
-				<div className="content-box">{bbs.content}</div>
-				<div>
-					<FileDisplay files={bbs.files} boardId={boardId} />
-				</div>
-				
-				 {/* 댓글 리스트 컴포넌트 */}
-				 <CommentList boardId={boardId} />
-
-				{/* 댓글 작성 컴포넌트 */}
-				{
-					(auth) ? // 로그인한 사용자만 댓글 작성 가능
-						<CommentWrite boardId={boardId}/>
-					:
-						null
-				}
-
-
-			</div>
-		</div>
-	);
+        {/* 댓글 작성 컴포넌트 */}
+        {auth ? ( // 로그인한 사용자만 댓글 작성 가능
+          <CommentWrite boardId={boardId} />
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 export default BbsDetail;
